@@ -1,3 +1,4 @@
+
 name := "spark2-template"
 
 import sbtassembly.MergeStrategy
