@@ -75,11 +75,57 @@ object examples {
     // Number of tours for each difficulty level
     toursDF.groupBy("tourDifficulty").count().show
 
-    // Minimum, maximum and average of tour price for each difficulty level
-    toursDF.groupBy($"tourDifficulty")
-      .agg(min($"tourPrice").as("Minimum"), max($"tourPrice").as("Maximum"), avg($"tourPrice").as("Average"))
+    // Minimum, maximum and average of tour price
+    toursDF.select(min($"tourPrice").as("Minimum"),
+      max($"tourPrice").as("Maximum"),
+      avg($"tourPrice").as("Average"))
       .show
 
+    // Minimum, maximum and average of tour price for each difficulty level
+    toursDF.groupBy($"tourDifficulty")
+      .agg(
+        min($"tourPrice").as("Minimum"),
+        max($"tourPrice").as("Maximum"),
+        avg($"tourPrice").as("Average")
+      )
+      .show
+
+    // Minimum, maximum and average of tour price and tour length for each difficulty level
+    toursDF.groupBy($"tourDifficulty")
+      .agg(
+        min($"tourPrice").as("Price minimum"),
+        max($"tourPrice").as("Price maximum"),
+        avg($"tourPrice").as("Price average"),
+        min($"tourLength").as("Length minimum"),
+        max($"tourLength").as("Length maximum"),
+        avg($"tourLength").as("Length average")
+      )
+      .show
+
+    // Top 10 of tour tags
+    val top10 = toursDF
+      .select(explode($"tourTags"), $"tourDifficulty")
+      .withColumnRenamed("col", "Tags")
+      .groupBy($"Tags", $"tourDifficulty")
+      .count()
+      .orderBy($"count".desc)
+      .withColumnRenamed("col", "Tag")
+      .withColumnRenamed("count", "Count")
+    top10.show(10)
+
+    val rel = top10.select("Tags", "tourDifficulty")
+      .groupBy("tourDifficulty")
+      .count()
+      .agg(min("count"), max("count"), avg("count"))
+    rel.show
+
+    // Top 10 of tour tags
+    toursDF.select(explode($"tourTags"), $"tourDifficulty", $"tourPrice")
+      .withColumnRenamed("col", "Tags")
+      .groupBy($"Tags", $"tourDifficulty")
+      .agg(min("tourPrice"), max("tourPrice"), avg("tourPrice"))
+      .orderBy(avg("tourPrice").desc)
+      .show(10)
 
   }
 }
