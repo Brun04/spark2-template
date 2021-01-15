@@ -46,17 +46,19 @@ object examples {
       .json("data/input/demographie_par_commune.json")
     //popCom.show
 
+    // 1 - Total population in France
     popCom.select(sum($"Population")).show
 
+    // 2 - Population by departement with only INSEE code
     val popDpt = popCom.groupBy($"Departement")
       .sum("Population")
       .orderBy($"sum(Population)".desc)
       .withColumnRenamed("sum(Population)", "Population")
     popDpt.show
 
+    // 3 - Population by departement with INSEE code and departement name
     val dptCsv = spark.read.csv("/home/formation/Documents/Spark/data/departements.txt")
       .toDF("Nom", "Departement")
-
     popDpt.join(dptCsv, "Departement").show
   }
 
@@ -70,12 +72,14 @@ object examples {
       .json("data/input/tours.json")
     toursDF.show
 
+    // Number of tours for each difficulty level
     toursDF.groupBy("tourDifficulty").count().show
 
-    toursDF.select($"tourDifficulty", $"tourPrice").groupBy($"tourDifficulty")
-      .count()
-      .select(min($"tourPrice"), max($"tourPrice"), avg($"tourPrice"))
+    // Minimum, maximum and average of tour price for each difficulty level
+    toursDF.groupBy($"tourDifficulty")
+      .agg(min($"tourPrice").as("Minimum"), max($"tourPrice").as("Maximum"), avg($"tourPrice").as("Average"))
       .show
+
 
   }
 }
